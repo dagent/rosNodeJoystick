@@ -4,32 +4,50 @@
 <head>
 
     <script>
-      var es = new EventSource('events');
+    var es;
 
-      es.addEventListener('open', function (event) {
-        var div = document.getElementById("open");
-        div.innerHTML = 'opened: ' + es.url;
-      }, false);
+      function createES() {
+        es = new EventSource('events');
 
-      es.addEventListener('message', function (event) {
-        //document.getElementById("message").innerHTML = event.data;
-        document.getElementById("mask").height.baseVal.value =
-            event.data;
-      }, false);
+        es.addEventListener('open', function (event) {
+            var div = document.getElementById("error");
+            div.innerHTML = 'opened ' + es.url + 
+                ' <button onclick="destroyES()">Close</button>';
+        }, false);
 
-      es.addEventListener('error', function (event) {
+        es.addEventListener('message', function (event) {
+            document.getElementById("mask").height.baseVal.value =
+                event.data;
+            document.getElementById("tvalue").textContent =
+                event.data;
+        }, false);
+
+        es.addEventListener('error', function (event) {
+            var div = document.getElementById("error");
+            div.innerHTML =
+                'closed by server <button onclick="createES()">Attempt Reconnect</button>';
+        }, false);
+      }
+      
+      function destroyES() {
+        es.close();
         var div = document.getElementById("error");
-        div.innerHTML = 'closed';
-
-      }, false);
+        div.innerHTML =
+            'closed <button onclick="createES()">Connect</button>';
+        document.getElementById("mask").height.baseVal.value = 280;
+        document.getElementById("tvalue").textContent = 280;
+      }
     </script>
 
 </head>
 
 <body>
 <div style="text-align:center">
-<button onclick="startIt()">Start it</button>
-<button onclick="stopIt()">Stop it</button>
+<p>
+<span>Internal (browser) random generator: </span>
+<button onclick="startIt()">Start</button>
+<button onclick="stopIt()">Stop</button>
+</p>
 <div>
 <svg xmlns="http://www.w3.org/2000/svg" height=300 >
 
@@ -49,27 +67,37 @@
     <rect id="mask" x="5" y="10" height="280" width="50"
     fill="#000" stroke="black" stroke-width="0" opacity="0.75"/>
 
-    <circle cx="200" cy="150" r="75" fill="none"
-    stroke="#579" stroke-width="30" stroke-dasharray="3,5,8,13">
+    <!--<circle cx="200" cy="150" r="75" fill="none" opacity="0.5"
+    stroke="#579" stroke-width="30" stroke-dasharray="3,5,8,13"> -->
+    <text id="tvalue" x="200" y="150" font-size="40" fill="blue">280</text>
 
 </svg>
+</div>
+<div>
+<p>External (server) random generator:
+<span id="error">
+                closed <button onclick="createES()">Connect</button>
+</span>
+</p>
 </div>
 </div>
 
 <script>
 /* Randomize the maskHeight from 0-280 */
 function changeHeight() {
-    document.getElementById("mask").height.baseVal.value =
-        Math.floor((Math.random()*280)+1);
+    rand = Math.floor((Math.random()*280)+1);
+    document.getElementById("mask").height.baseVal.value = rand;
+    document.getElementById("tvalue").textContent = rand;
 }
 
 function startIt()  {
-interv = setInterval("changeHeight()",200);
+interv = setInterval("changeHeight()",500);
 }
 
 function stopIt() {
     clearInterval(interv);
     document.getElementById("mask").height.baseVal.value = 280;
+    document.getElementById("tvalue").textContent = 280;
 }
 
 </script>

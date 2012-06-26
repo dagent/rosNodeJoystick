@@ -1,11 +1,14 @@
 #! /bin/bash
 
-# Generate a random number from 0 to 280
+# Generate a random number from 0 to 280, outputting once/sec
 
 RANGE=280
 
+while true; do
 num=$RANDOM
 let "num %= $RANGE"
 
 echo $num
+sleep 1
 
+done
