@@ -1,0 +1,11 @@
+#! /bin/bash
+
+# Generate a random number from 0 to 280
+
+RANGE=280
+
+num=$RANDOM
+let "num %= $RANGE"
+
+echo $num
+

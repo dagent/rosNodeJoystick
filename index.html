@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <script>
+      var es = new EventSource('events');
+
+      es.addEventListener('open', function (event) {
+        var div = document.getElementById("open");
+        div.innerHTML = 'opened: ' + es.url;
+      }, false);
+
+      es.addEventListener('message', function (event) {
+        //document.getElementById("message").innerHTML = event.data;
+        document.getElementById("mask").height.baseVal.value =
+            event.data;
+      }, false);
+
+      es.addEventListener('error', function (event) {
+        var div = document.getElementById("error");
+        div.innerHTML = 'closed';
+
+      }, false);
+    </script>
+
+</head>
+
+<body>
+<div style="text-align:center">
+<button onclick="startIt()">Start it</button>
+<button onclick="stopIt()">Stop it</button>
+<div>
+<svg xmlns="http://www.w3.org/2000/svg" height=300 >
+
+    <rect x="5" y="10" height="60" width="50"
+    fill="orange" stroke="black" stroke-width="2"/>
+    <text x="65" y="19" font-size="18" fill="red">0</text>
+
+    <text x="65" y="79" font-size="18" fill="red">60</text>
+    <rect x="5" y="70" height="160" width="50"
+    fill="yellow" stroke="black" stroke-width="2"/>
+
+    <text x="65" y="239" font-size="18" fill="lime">220</text>
+    <rect x="5" y="230" height="60" width="50"
+    fill="lime" stroke="black" stroke-width="2"/>
+    <text x="65" y="299" font-size="18" fill="lime">280</text>
+
+    <rect id="mask" x="5" y="10" height="280" width="50"
+    fill="#000" stroke="black" stroke-width="0" opacity="0.75"/>
+
+    <circle cx="200" cy="150" r="75" fill="none"
+    stroke="#579" stroke-width="30" stroke-dasharray="3,5,8,13">
+
+</svg>
+</div>
+</div>
+
+<script>
+/* Randomize the maskHeight from 0-280 */
+function changeHeight() {
+    document.getElementById("mask").height.baseVal.value =
+        Math.floor((Math.random()*280)+1);
+}
+
+function startIt()  {
+interv = setInterval("changeHeight()",200);
+}
+
+function stopIt() {
+    clearInterval(interv);
+    document.getElementById("mask").height.baseVal.value = 280;
+}
+
+</script>
+
+
+</body>
+</html>
