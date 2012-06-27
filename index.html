@@ -1,107 +1,35 @@
-<!DOCTYPE html>
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN">
 <html>
-
-<head>
-
-    <script>
-    var es;
-
-      function createES() {
-        es = new EventSource('events');
-
-        es.addEventListener('open', function (event) {
-            var div = document.getElementById("error");
-            div.innerHTML = 'opened ' + es.url + 
-                ' <button onclick="destroyES()">Close</button>';
-        }, false);
-
-        es.addEventListener('message', function (event) {
-            document.getElementById("mask").height.baseVal.value =
-                event.data;
-            document.getElementById("tvalue").textContent =
-                event.data;
-        }, false);
-
-        es.addEventListener('error', function (event) {
-            var div = document.getElementById("error");
-            div.innerHTML =
-                'closed by server <button onclick="createES()">Attempt Reconnect</button>';
-        }, false);
-      }
-      
-      function destroyES() {
-        es.close();
-        var div = document.getElementById("error");
-        div.innerHTML =
-            'closed <button onclick="createES()">Connect</button>';
-        document.getElementById("mask").height.baseVal.value = 280;
-        document.getElementById("tvalue").textContent = 280;
-      }
-    </script>
-
-</head>
-
-<body>
-<div style="text-align:center">
-<p>
-<span>Internal (browser) random generator: </span>
-<button onclick="startIt()">Start</button>
-<button onclick="stopIt()">Stop</button>
-</p>
-<div>
-<svg xmlns="http://www.w3.org/2000/svg" height=300 >
-
-    <rect x="5" y="10" height="60" width="50"
-    fill="orange" stroke="black" stroke-width="2"/>
-    <text x="65" y="19" font-size="18" fill="red">0</text>
-
-    <text x="65" y="79" font-size="18" fill="red">60</text>
-    <rect x="5" y="70" height="160" width="50"
-    fill="yellow" stroke="black" stroke-width="2"/>
-
-    <text x="65" y="239" font-size="18" fill="lime">220</text>
-    <rect x="5" y="230" height="60" width="50"
-    fill="lime" stroke="black" stroke-width="2"/>
-    <text x="65" y="299" font-size="18" fill="lime">280</text>
-
-    <rect id="mask" x="5" y="10" height="280" width="50"
-    fill="#000" stroke="black" stroke-width="0" opacity="0.75"/>
-
-    <!--<circle cx="200" cy="150" r="75" fill="none" opacity="0.5"
-    stroke="#579" stroke-width="30" stroke-dasharray="3,5,8,13"> -->
-    <text id="tvalue" x="200" y="150" font-size="40" fill="blue">280</text>
-
-</svg>
-</div>
-<div>
-<p>External (server) random generator:
-<span id="error">
-                closed <button onclick="createES()">Connect</button>
-</span>
-</p>
-</div>
-</div>
-
-<script>
-/* Randomize the maskHeight from 0-280 */
-function changeHeight() {
-    rand = Math.floor((Math.random()*280)+1);
-    document.getElementById("mask").height.baseVal.value = rand;
-    document.getElementById("tvalue").textContent = rand;
-}
-
-function startIt()  {
-interv = setInterval("changeHeight()",500);
-}
-
-function stopIt() {
-    clearInterval(interv);
-    document.getElementById("mask").height.baseVal.value = 280;
-    document.getElementById("tvalue").textContent = 280;
-}
-
-</script>
-
-
-</body>
+    <head>
+        <script src="NodeEventHandlers.js" type="text/javascript"></script>
+        <title>Node Client</title>
+    </head>
+    <body>
+        <div style="text-align:center">
+            <p>
+                <span>Internal (browser) random generator:</span>
+                <button onclick="startIt()">Start</button>
+                <button onclick="stopIt()">Stop</button>
+            </p>
+        </div>
+    </body>
+    <svg xmlns="http://www.w3.org/2000/svg" height="300">
+        <rect x="5" y="10" height="60" width="50" fill="orange" stroke="black" stroke-width="2" />
+        <text x="65" y="19" font-size="18" fill="red">0</text>
+        <text x="65" y="79" font-size="18" fill="red">60</text>
+        <rect x="5" y="70" height="160" width="50" fill="yellow" stroke="black" stroke-width="2" />
+        <text x="65" y="239" font-size="18" fill="lime">220</text>
+        <rect x="5" y="230" height="60" width="50" fill="lime" stroke="black" stroke-width="2" />
+        <text x="65" y="299" font-size="18" fill="lime">280</text>
+        <rect id="mask" x="5" y="10" height="280" width="50" fill="#000" stroke="black" stroke-width="0" opacity="0.75" />
+        <!--<circle cx="200" cy="150" r="75" fill="none" opacity="0.5" stroke="#579" stroke-width="30" stroke-dasharray="3,5,8,13"> -->
+        <text id="tvalue" x="200" y="150" font-size="40" fill="blue">280</text>
+    </svg>
+    <div>
+        <p>External (server) random generator: 
+			<span id="error">closed 
+				<button onclick="createES()">Connect</button>
+			</span>
+		</p>
+    </div>
 </html>
