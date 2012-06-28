@@ -1,14 +1,30 @@
 var http = require('http');
 var fs = require('fs');
+var util = require('util');
 
-http.createServer(function (req, res) {
+serverPortNum = 8081;
+diagLoggingLevel = 1;
+
+var server = http.createServer();
+server.addListener('request', OnRequest);
+server.addListener('connection', OnConnection);
+server.addListener('close', OnClose);
+server.listen(serverPortNum);
+Logger_Diag(1, "Server started on port " + serverPortNum);
+
+//Logger_Diag(3, util.inspect(server.listeners('request')));
+//Logger_Diag(3, util.inspect(server.listeners('connection')));
+//Logger_Diag(3, util.inspect(server.listeners('close')));
+
+//=============================== OnRequest
+function OnRequest (req, res) {
 	var conn = req.connection;
     var fileExt = "";
 
-	console.error('\nRequest Rcvd ' + Date());
-	console.error('HEADERS: ' + JSON.stringify(req.headers));
-	console.error('FROM: ' + conn.remoteAddress + ':' + conn.remotePort );
-	console.error('req.url: ' + req.url);
+	Logger_Diag(1, 'req.url: ' + req.url);
+	Logger_Diag(2, '\nRequest Rcvd ' + Date());
+	Logger_Diag(3, 'HEADERS: ' + JSON.stringify(req.headers));
+	Logger_Diag(3, 'FROM: ' + conn.remoteAddress + ':' + conn.remotePort );
 
 	if (req.url.indexOf('/events') === 0) {
 		res.writeHead(200, {
@@ -18,15 +34,12 @@ http.createServer(function (req, res) {
 			'Access-Control-Allow-Origin': '*'
 		});
 
-		res.write(':\n'); 
+		res.write(':\n');
 		process.stdin.resume();
 		process.stdin.setEncoding('utf8');
 		process.stdin.on('data', function (chunk) {
 			res.write('data: ' + chunk + '\n\n');
 		});
-
-     
-
 	} else {
         // Redirect default URL
 		if (req.url === '/') {
@@ -36,35 +49,9 @@ http.createServer(function (req, res) {
         // Return appropriate mime-type
         var fileName = require('url').parse(req.url).pathname;
         console.error("Filename " + fileName + " requested.");
-        var mimeType = function (fstring) {
-            var fileExtRE = /^.*\.(html|js|svg).*$/;
-            var fileExt = fileExtRE.exec(fileName); 
-            //console.error("file extension length: " + fileExt.length);
-            if (fileExt) {
-                fileExt = fileExt[1];
-            } else {
-                fileExt = "";
-            }
-            console.error("File extension: " + fileExt);
-            switch( fileExt ) {
-                case 'html':
-                    console.error("Mime type: text/html");
-                    return 'text/html';
-                    break;
-                case 'js':
-                    console.error("Mime type: text/javascript");
-                    return 'text/javascript';
-                    break;
-                case 'svg':
-                    console.error("Mime type: image/svg+xml");
-                    return 'image/svg+xml';
-                    break;
-                default:
-                    console.error("Mime type: text/plain");
-                    return 'text/plain';
-            }
-        }(fileName);
 
+        var mimeType = FileNameToMimeType(fileName);
+		Logger_Diag(2, "Mime type: " +  strMimeType);
         //Check that file exists and output
         fs.stat(__dirname + fileName , function(err, stats) {
             // If not, send 404
@@ -81,8 +68,57 @@ http.createServer(function (req, res) {
             res.end();
             console.error("Connection closed.");
         })
-
 	}
-}).listen(8081); //! port :8081
+}
+//=============================== OnConnection
+function OnConnection(socket){
+	Logger_Diag(1, "A client connected from " + socket.remoteAddress +":" + socket.remotePort);
+}
+//=============================== OnClose
+function OnClose (){
+	Logger_Diag(1, "The server closed");
+}
 
-console.error("Server started on port 8081");
+//=============================== FileNameToMimeType
+function FileNameToMimeType(strFileName) {
+	var fileExtRE = /^.*\.(html|js|svg|css|xml)$/;
+	var fileExt = fileExtRE.exec(strFileName);
+	//console.error("file extension length: " + fileExt.length);
+	if (fileExt) {
+		fileExt = fileExt[1];
+	} else {
+		fileExt = "";
+	}
+
+	Logger_Diag(2, "File extension: " + fileExt);
+
+	switch( fileExt ) {
+		 case 'css':
+			strMimeType = 'text/css';
+			break;
+		case 'xml':
+			strMimeType = 'text/xml';
+			break;
+	   case 'html':
+			strMimeType = 'text/html';
+			break;
+		case 'js':
+			strMimeType = 'text/javascript';
+			break;
+		case 'svg':
+			strMimeType = 'image/svg+xml';
+			break;
+		default:
+			strMimeType = 'text/plain';
+	}
+}
+//=============================== Logger_Diag
+// Logger will become a class with method Diag()
+// At least this will be easy to search and replace
+function Logger_Diag (argDiagLevel, strMsg){
+	// A high diagLoggingLevel means more info will be included in diagnostics
+	if (argDiagLevel <= diagLoggingLevel){
+		console.error(strMsg);
+	}
+}
+
