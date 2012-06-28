@@ -5,7 +5,8 @@ function createES() {
 
 	es.addEventListener('open', function (event) {
 		var div = document.getElementById("error");
-		div.innerHTML = 'opened ' + es.url + ' <button onclick="destroyES()">Close</button>';
+		div.innerHTML = 'opened ' + es.url +
+            ' <button onclick="destroyES()">Close</button>';
 	}, false);
 
 	es.addEventListener('message', function (event) {
