@@ -26,6 +26,11 @@ function OnRequest (req, res) {
 	Logger_Diag(3, 'HEADERS: ' + JSON.stringify(req.headers));
 	Logger_Diag(3, 'FROM: ' + conn.remoteAddress + ':' + conn.remotePort );
 
+    req.addListener('close', function() {
+        Logger_Diag(1, 'Request connection closed from '
+            + conn.remoteAddress + ':' + conn.remotePort );
+        });
+       
 	if (req.url.indexOf('/events') === 0) {
 		res.writeHead(200, {
 			'Content-Type': 'text/event-stream',
@@ -76,7 +81,7 @@ function OnConnection(socket){
 }
 //=============================== OnClose
 function OnClose (){
-	Logger_Diag(1, "The server closed");
+	Logger_Diag(1, "The client closed the connection");
 }
 
 //=============================== FileNameToMimeType
