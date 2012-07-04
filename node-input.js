@@ -12,7 +12,10 @@ diagLoggingLevel = 1;
 
 // Handle Arguments
 var argv = optimist
-    .usage('Usage: $0 [--port=#] [--loglevel=#] [--tcpport=%]')
+    .usage('\nUsage: $0 [--port=#] [--loglevel=#] [--tcpport=%]\n\n' +
+            '\tDefaults: loglevel=' + diagLoggingLevel +
+            ' port=' + serverPortNum +
+            ' tcpport=' + tcpPortNum)
     .argv;
 var intRegex = /^\d+$/;
 if ( intRegex.test(argv.port) ) {
