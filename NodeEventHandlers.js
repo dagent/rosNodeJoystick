@@ -16,12 +16,14 @@ function createES() {
 
 	es.addEventListener('error', function (event) {
 		var div = document.getElementById("error");
-		div.innerHTML = 'closed by server <button onclick="createES()">Attempt Reconnect</button>';
+		div.innerHTML = 'closed by server <button onclick="createES()">Attempt Reconnect</button> Err message: ' + error.msg;
+        console.log("Duh2!!");
 	}, false);
 }
 
 function destroyES() {
 	es.close();
+    console.log("Duh!");
 	var div = document.getElementById("error");
 	div.innerHTML = 'closed <button onclick="createES()">Connect</button>';
 	document.getElementById("mask").height.baseVal.value = 280;

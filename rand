@@ -1,14 +1,45 @@
-#! /bin/bash
+#! /usr/bin/perl
 
-# Generate a random number from 0 to 280, outputting once/sec
+chomp ($prog = `basename $0`);
+$RANGE = 10;
+$PERIOD = 1.0;
+$FLOOR = 0;
 
-RANGE=280
+sub usage () {
+$out = <<DUH
 
-while true; do
-num=$RANDOM
-let "num %= $RANGE"
+    $prog [RANGE [PERIOD [FLOOR]]
 
-echo $num
-sleep 1
+    Output to STDOUT a random *integer* with lower bound of FLOOR and a
+    RANGE-1 every PERIOD seconds.  RANGE defaults to $RANGE, PERIOD to
+    $PERIOD, and FLOOR to $FLOOR.
 
-done
+DUH
+;
+print STDERR $out;
+exit;
+}
+
+if ( $ARGV[0] =~ /\-h/ ) {
+    usage();
+}
+
+if ( $ARGV[0] =~ /(\d)+/ ) {
+    $RANGE = $ARGV[0];
+}
+if ( $ARGV[1] =~ /(\d)+/ ) {
+    $PERIOD = $ARGV[1];
+}
+if ( $ARGV[2] =~ /(\d)+/ ) {
+    $FLOOR = $ARGV[2];
+}
+
+$| = 1;
+while (1) {
+    $rand = int(rand($RANGE)) + $FLOOR;
+    print "$rand\n";
+# This is a sleep
+    select(undef, undef, undef, $PERIOD);
+}
+
+

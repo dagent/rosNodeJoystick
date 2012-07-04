@@ -1,0 +1,69 @@
+#! /bin/bash
+
+progn=`basename $0`
+logf="/tmp/$progn.log"
+pidf="/tmp/$progn.pid"
+node_cmd="./node-input.js"
+rand_cmd="./rand 280 .5"
+
+start() {
+    if [ -f $pidf ] ; then 
+        echo
+        echo -n "$pidf: Already running with PID "; cat $pidf; echo
+        exit
+    fi
+
+    echo "Starting $node_cmd with logging to $logf"
+    date >> $logf
+    $rand_cmd | $node_cmd 2>>$logf &
+    cpid=$!
+    if [ $? -eq 0 ] ; then
+        echo $cpid > $pidf
+        echo -n "$node_cmd now running with PID "; cat $pidf; echo
+    else
+        echo "Failure to start $node_cmd"
+    fi
+}
+
+status() {
+    if [ -f $pidf ] ; then 
+        pid=`cat $pidf`
+        if ps -p $pid  ; then
+            echo "Running with PID $pid"
+        fi
+    else
+        echo "Not running"
+    fi
+}
+
+stop() {
+    if [ -f $pidf ] ; then 
+        pid=`cat $pidf`
+        kill $pid 
+        echo "Stopped"
+        rm $pidf
+    else
+        echo "Not running"
+    fi
+}
+
+case $1 in
+    start)
+        start
+        ;;
+    stop)
+        stop
+        ;;
+    status)
+        status
+        ;;
+    restart)
+        stop
+        sleep 1
+        start
+        ;;
+    *)
+        echo
+        echo "Usage: $progn [start|stop|restart|status]" 
+        echo
+esac
