@@ -2,8 +2,7 @@
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
 "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
 
-<svg xmlns="http://www.w3.org/2000/svg" version="1.1" height="300"
-width="300">
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" height="300" width="300">
 
     <text x="65" y="19" font-size="18" fill="red">0</text>
     <rect x="5" y="10" height="60" width="50" fill="orange"
@@ -18,13 +17,13 @@ width="300">
         stroke="black" stroke-width="2" />
     <text x="65" y="299" font-size="18" fill="lime">280</text>
 
-    <rect id="mask" x="5" y="10" height="280" width="50"
+    <rect id="mask" class="mask" x="5" y="10" height="280" width="50"
         fill="#000" stroke="black" stroke-width="0" opacity="0.75" />
 
     <!--<circle cx="200" cy="150" r="75" fill="none" opacity="0.5"
         stroke="#579" stroke-width="30" stroke-dasharray="3,5,8,13"> -->
 
-    <text id="tvalue" x="200" y="150" font-size="40" fill="blue">280</text>
+    <text id="tvalue" class="tvalue" x="200" y="150" font-size="40" fill="blue">280</text>
 
 </svg>
 
