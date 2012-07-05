@@ -4,7 +4,6 @@ progn=`basename $0`
 logf="/tmp/$progn.log"
 pidf="/tmp/$progn.pid"
 node_cmd="./node-input.js"
-rand_cmd="./rand 280 .5"
 
 start() {
     if [ -f $pidf ] ; then 
@@ -15,7 +14,7 @@ start() {
 
     echo "Starting $node_cmd with logging to $logf"
     date >> $logf
-    $rand_cmd | $node_cmd 2>>$logf &
+    $node_cmd 2>>$logf &
     cpid=$!
     if [ $? -eq 0 ] ; then
         echo $cpid > $pidf
