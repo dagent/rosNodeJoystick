@@ -115,8 +115,8 @@ body {
 /**********************************************/
 /* Container layout from http://www.alistapart.com/articles/holygrail */
 #main-container {
-	padding-left: 202px;   /* LC width */
-	padding-right: 150px;  /* RC width */
+	padding-left: 10px;   /* LC width */
+	padding-right: 10px;  /* RC width */
 	clear: both;
 	min-height: 200px;
 	background: transparent;

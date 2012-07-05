@@ -23,7 +23,7 @@
     <!--<circle cx="200" cy="150" r="75" fill="none" opacity="0.5"
         stroke="#579" stroke-width="30" stroke-dasharray="3,5,8,13"> -->
 
-    <text id="tvalue" class="tvalue" x="200" y="150" font-size="40" fill="blue">280</text>
+    <text id="tvalue" class="tvalue" x="100" y="150" font-size="40" fill="blue">280</text>
 
 </svg>
 
