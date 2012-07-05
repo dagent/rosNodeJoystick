@@ -1,29 +1,51 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN">
 <html>
     <head>
-        <script src="NodeEventHandlers.js" type="text/javascript"></script>
-        <title>Node Client</title>
+		<title>Node Client</title>
+		<link rel="stylesheet" type="text/css" href="css/main.css" media="all" />
+		<script src="jsext/prototype.js" type="text/javascript"></script>
+		<script src="NodeEventHandlers.js" type="text/javascript"></script>
+		<script src="nodeclientapp.js" type="text/javascript"></script>
+		<script src="svg.js" type="text/javascript"></script>
+		<script type="text/javascript">
+		function initAll() {
+			console.log("initAll");
+			if (typeof(gApp) == "undefined") {
+				gApp = new CNodeClientApp();
+				gApp.init();
+			};
+			svgLightBar = gApp.svg.create("lightbar", "TheOtherLightBar");
+			svgLightBar.setDOMContainer(document.getElementById("svg-container-right"));
+			createES();
+		}		
+		window.onload = initAll;	
+		</script> 
     </head>
     <body>
-        <div style="text-align:center">
-            <p>
-                <span>Internal (browser) random generator:</span>
-                <button onclick="startIt()">Start</button>
-                <button onclick="stopIt()">Stop</button>
-            </p>
-            <!--
-                meter, mask, tvalue are integrated and called from all
-                sorts of things.  Monkey not with this yet... --> 
-            <script src="meter-svg.js"></script>
-            <embed id="meter" src="meter.svg"
-                onload='mask = svgElement("meter", "mask");
-                        tvalue = svgElement("meter", "tvalue");' >
-            </embed>
-        <p>External (server) random generator: 
+		<p>
+			<span>Internal (browser) random generator:</span>
+			<button onclick="startIt()">Start</button>
+			<button onclick="stopIt()">Stop</button>
+		</p>
+		<p>External (server) random generator: 
 			<span id="error">closed 
 				<button onclick="createES()">Connect</button>
 			</span>
 		</p>
-    </div>
+
+		<div id="main-container">
+			<div id="svg-container-left" class="column" >
+				<!--
+					meter, mask, tvalue are integrated and called from all
+					sorts of things.  Monkey not with this yet... --> 
+				<script src="meter-svg.js"></script>
+				<embed id="meter" src="meter.svg"
+					onload='mask = svgElement("meter", "mask");
+							tvalue = svgElement("meter", "tvalue");' >
+				</embed>
+			</div>
+			<div id="svg-container-right" class="column">
+			</div>
+		</div>
     </body>
 </html>
