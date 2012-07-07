@@ -4,6 +4,7 @@ var http = require('http');
 var fs = require('fs');
 var util = require('util');
 var optimist = require('optimist');  // npm installed module for option parsing
+var ws = require("websocket");       // npm installed module for WebSockets
 
 // Defaults
 serverPortNum = 8081;
