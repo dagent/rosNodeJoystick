@@ -3,20 +3,32 @@
     <head>
 		<title>Node Client</title>
 		<link rel="stylesheet" type="text/css" href="css/main.css" media="all" />
+		<link rel="stylesheet" type="text/css" href="css/logger.css" media="all" />
 		<script src="jsext/prototype.js" type="text/javascript"></script>
+		<script src="jsext/logger.js" type="text/javascript"></script>
+		<script src="jsext/date.format.js" type="text/javascript"></script>
 		<script src="NodeEventHandlers.js" type="text/javascript"></script>
 		<script src="nodeclientapp.js" type="text/javascript"></script>
 		<script src="svg.js" type="text/javascript"></script>
 		<script type="text/javascript">
 		function initAll() {
-			console.log("initAll");
-			if (typeof(gApp) == "undefined") {
-				gApp = new CNodeClientApp();
-				gApp.init();
-			};
-			svgLightBar = gApp.svg.create("lightbar", "TheOtherLightBar");
-			svgLightBar.setDOMContainer(document.getElementById("svg-container-right"));
-			createES();
+			var logMsg = "window.onload -> initAll()";
+			console.log(logMsg);
+			try {
+				info(logMsg);
+				if (typeof(gApp) == "undefined") {
+					gApp = new CNodeClientApp();
+					gApp.init();
+				};
+				svgLightBar = gApp.svg.create("lightbar", "TheOtherLightBar");
+				svgLightBar.setDOMContainer(document.getElementById("svg-container-right"));
+				createES();
+								blahblahblah
+			} catch(exc){
+				var errMsg = "Exception in window.onload -> initAll()" + exc;
+				error(errMsg);			
+				console.log(errMsg);
+			}
 		}		
 		window.onload = initAll;	
 		</script> 
@@ -47,5 +59,20 @@
 			<div id="svg-container-right" class="column">
 			</div>
 		</div>
+		<div id="fvlogger" >
+			<dl>
+				<dt>fvlogger</dt>
+				<dd class="all"><a href="#fvlogger" onclick="showAll();" title="show all" id="abcdef">all</a></dd>
+				<dd class="debug"><a href="#fvlogger" onclick="showDebug();" title="show debug" id="showDebug">debug</a></dd>
+				<dd class="info"><a href="#fvlogger"  onclick="showInfo();" title="show info" id="showInfo">info</a></dd>
+				<dd class="warn"><a href="#fvlogger" onclick="showWarn();" title="show warnings" id="showWarn">warn</a></dd>
+				<dd class="error"><a href="#fvlogger" onclick="showError();" title="show errors" id="showError">error</a></dd>
+				<dd class="fatal"><a href="#fvlogger" onclick="showFatal();" title="show fatals" id="showFatal">fatal</a></dd>
+				<dd><a href="#fvlogger" onclick="eraseLog(true);" title="erase">erase</a></dd>
+			</dl>
+			<div id="fvlogger-entries" >
+			</div>	
+		</div>
+
     </body>
 </html>
