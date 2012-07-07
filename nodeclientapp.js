@@ -21,6 +21,7 @@ function CNodeClientApp() {
 			// });
 
 		// this.cont.doRecord_Read(transInit);
+		info("CNodeClientApp initialized.");
 	}
 
 
