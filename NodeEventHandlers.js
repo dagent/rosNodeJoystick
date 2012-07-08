@@ -1,20 +1,41 @@
 var es;
 
-function createES() {
-	es = new EventSource('events');
+function createES(aMeter) {
+	//es = new EventSource('events');
+    url = "ws://localhost:8081";
+    
+    var outMessage = {
+        "meter": aMeter
+    };
+    var inMessage = {};
+
+    error("Sending request for meter " + aMeter);
+
+    es = new WebSocket(url, "meter-protocol");
 
 	es.addEventListener('open', function (event) {
 		var div = document.getElementById("error");
 		div.innerHTML = 'opened ' + es.url +
             ' <button onclick="destroyES()">Close</button>';
+        es.send(JSON.stringify(outMessage));
 	}, false);
 
 	es.addEventListener('message', function (event) {
-	    mask.height.baseVal.value = event.data;
-		tvalue.textContent = event.data;
-		var blah = document.getElementById("svg-container");
-		var svgObj = gApp.svg.GetSVGObject("TheOtherLightBar");
-		svgObj.setValue(event.data);
+        inMessage = JSON.parse(event.data);
+        if ( isNaN(inMessage.height) ) {
+            return;
+        }
+        switch(inMessage.meter) {
+            case "left":
+                mask.height.baseVal.value = inMessage.height;
+                tvalue.textContent = inMessage.height;
+                break;
+            case "right":
+                var blah = document.getElementById("svg-container");
+                var svgObj = gApp.svg.GetSVGObject("TheOtherLightBar");
+                svgObj.setValue(inMessage.height);
+                break;
+        }
 	}, false);
 
 	es.addEventListener('error', function (event) {
@@ -26,7 +47,7 @@ function createES() {
 function destroyES() {
 	es.close();
 	var div = document.getElementById("error");
-	div.innerHTML = 'closed <button onclick="createES()">Connect</button>';
+	div.innerHTML = "closed <button onclick='createES(\"left\")'>Connect</button>";
 	mask.height.baseVal.value = 280;
 	tvalue.textContent = 280;
 }

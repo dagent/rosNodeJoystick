@@ -6,6 +6,11 @@ var util = require('util');
 var optimist = require('optimist');  // npm installed module for option parsing
 var ws = require("websocket");       // npm installed module for WebSockets
 
+var meterObj = {
+    "left": 7331,
+    "right": 7332
+}
+
 // Defaults
 serverPortNum = 8081;
 tcpPortNum = 7331;
@@ -26,6 +31,8 @@ if ( intRegex.test(argv.port) ) {
 if ( intRegex.test(argv.tcpport) ) {
     console.error("Option tcpport set")
     tcpPortNum = argv.tcpport;
+    meterObj.left =  tcpPortNum;
+    meterObj.right =  tcpPortNum + 1;
 }
 if ( intRegex.test(argv.loglevel) ) {
     diagLogginLevel = argv.loglevel;
@@ -43,22 +50,91 @@ server.addListener('close', OnClose);
 server.listen(serverPortNum);
 Logger_Diag(1, "Server started on port " + serverPortNum);
 
+// ====== Websocket Server creation
+
+var WebSocketServer = ws.server;
+wsServer = new WebSocketServer({
+    httpServer: server,
+    // You should not use autoAcceptConnections for production
+    // applications, as it defeats all standard cross-origin protection
+    // facilities built into the protocol and the browser.  You should
+    // *always* verify the connection's origin and decide whether or not
+    // to accept it.
+    autoAcceptConnections: false
+});
+
+function originIsAllowed(origin) {
+  // put logic here to detect whether the specified origin is allowed.
+  return true;
+}
+
+var serverWSres = {} ;
+wsServer.on('request', function(request) {
+    if (!originIsAllowed(request.origin)) {
+      // Make sure we only accept requests from an allowed origin
+      request.reject();
+      Logger_Diag(1, (new Date()) + ' Connection from origin ' + request.origin + ' rejected.');
+      return;
+    }
+
+    var connection = request.accept('meter-protocol', request.origin);
+    var reqSocket = connection.socket.remoteAddress + ':' + connection.socket.remotePort ;
+
+    Logger_Diag(1,'Websocket connection accepted from ' + reqSocket);
+
+    serverWSres[reqSocket] = connection;
+
+    connection.on('message', function(message) {
+        var msgObj = JSON.parse(message.utf8Data);
+        for ( aKey in msgObj ) {
+            Logger_Diag(1, aKey + " -> " + msgObj[aKey]);
+        }
+        if (message.type === 'utf8') {
+            Logger_Diag(2,'Received Message: ' + message.utf8Data);
+            connection.sendUTF(message.utf8Data);
+        }
+        else if (message.type === 'binary') {
+            Logger_Diag(2,'Received Binary Message of ' + message.binaryData.length + ' bytes');
+            connection.sendBytes(message.binaryData);
+        }
+    });
+    connection.on('close', function(reasonCode, description) {
+        delete serverWSres[reqSocket];
+        Logger_Diag(1,'Websocket peer ' + reqSocket + ' disconnected.');
+    });
+});
+
+
 // ====== TCP Server creation
 var net = require('net');
 var tcpServer = net.createServer();
 tcpServer.on('connection',function(socket){
+    var localAddress = socket.address();
+    var reqSocket = socket.remoteAddress + ':' + socket.remotePort ;
     socket.write('hello there\r\n');
-    Logger_Diag(1, 'TCP connection on port ' + tcpPortNum);
+    Logger_Diag(1, "Incoming connection on port " + localAddress["port"]);
+    // Text only for this connection
 	socket.setEncoding('utf8');
     socket.on('data', function(data){
-        for ( key in serverHTTPres ) {
-                Logger_Diag(3, 'received on :' + tcpPortNum + " " + data);
-                serverHTTPres[key].write('data: ' + data + '\n\n');
+        Logger_Diag(3, 'received on :' + tcpPortNum + " " + data);
+        //for ( key in serverHTTPres ) {
+                //serverHTTPres[key].write('data: ' + data + '\n\n');
+        //};
+        for ( key in serverWSres ) {
+                serverWSres[key].sendUTF(data);
         };
     });
+    socket.on('close', function() {
+        Logger_Diag(1, "Deleted connection on port " + localAddress["port"] +
+            " from " + reqSocket);
+    });
+
 });
-tcpServer.listen(tcpPortNum);
-Logger_Diag(1, "TCP server started on port " + tcpPortNum);
+for ( aMeter in meterObj ) {
+    tcpServer.listen(meterObj[aMeter]);
+    Logger_Diag(1, "TCP server started on port " + meterObj[aMeter] + 
+        " for meter " + aMeter );
+}
 
 
 

@@ -22,8 +22,7 @@
 				};
 				svgLightBar = gApp.svg.create("lightbar", "TheOtherLightBar");
 				svgLightBar.setDOMContainer(document.getElementById("svg-container-right"));
-				createES();
-								blahblahblah
+				createES('right');
 			} catch(exc){
 				var errMsg = "Exception in window.onload -> initAll()" + exc;
 				error(errMsg);			
@@ -41,7 +40,7 @@
 		</p>
 		<p>External (server) random generator: 
 			<span id="error">closed 
-				<button onclick="createES()">Connect</button>
+				<button onclick='createES("left")'>Connect</button>
 			</span>
 		</p>
 
