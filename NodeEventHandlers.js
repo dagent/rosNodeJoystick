@@ -47,7 +47,7 @@ function createES(aMeter) {
 
 	es[myMeter].addEventListener('error', function (event) {
 		var div = document.getElementById("error");
-		div.innerHTML = 'closed by server <button onclick="createES(\"left\")">Attempt Reconnect</button>';
+		div.innerHTML = 'closed by server <button onclick="createES(\'left\')">Attempt Reconnect</button>';
 	}, false);
 }
 
