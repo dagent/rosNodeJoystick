@@ -5,11 +5,7 @@ var fs = require('fs');
 var util = require('util');
 var optimist = require('optimist');  // npm installed module for option parsing
 var ws = require("websocket");       // npm installed module for WebSockets
-
-var meterObj = {
-    "left": 7331,
-    "right": 7332
-}
+var meterObj = require('./node-meter.js')["meters"];
 
 // Defaults
 serverPortNum = 8081;
@@ -31,11 +27,12 @@ if ( intRegex.test(argv.port) ) {
 if ( intRegex.test(argv.tcpport) ) {
     console.error("Option tcpport set")
     tcpPortNum = argv.tcpport;
-    meterObj.left =  tcpPortNum;
-    meterObj.right =  tcpPortNum + 1;
+    meterObj.setPort("left", tcpPortNum);
+    meterObj.setPort("right", tcpPortNum + 1);
 }
 if ( intRegex.test(argv.loglevel) ) {
-    diagLogginLevel = argv.loglevel;
+    diagLoggingLevel = argv.loglevel;
+    console.error("loglevel set to " + argv.loglevel);
 }
 if (argv.help) {
     optimist.showHelp();
@@ -44,11 +41,13 @@ if (argv.help) {
 
 // ====== HTTP Server creation
 var server = http.createServer();
-server.addListener('request', OnRequest);
-server.addListener('connection', OnConnection);
-server.addListener('close', OnClose);
+server.on('request', OnRequest);
+server.on('connection', OnConnection);
+server.on('close', OnClose);
 server.listen(serverPortNum);
-Logger_Diag(1, "Server started on port " + serverPortNum);
+server.on('listening', function() {
+    Logger_Diag(1, "HTTP Server started on port " + serverPortNum);
+});
 
 // ====== Websocket Server creation
 
@@ -70,6 +69,16 @@ function originIsAllowed(origin) {
 
 var serverWSres = {} ;
 wsServer.on('request', function(request) {
+
+    request.on('requestAccepted', function(connection) {
+        var reqSocket = connection.socket.remoteAddress + ':' + connection.socket.remotePort ;
+        Logger_Diag(1,"Websocket " + reqSocket +" accepted");
+    });
+
+    request.on('error', function(e) {
+        Logger_Diag(1, "Websocket error: " + e.message);
+    });
+
     if (!originIsAllowed(request.origin)) {
       // Make sure we only accept requests from an allowed origin
       request.reject();
@@ -77,26 +86,47 @@ wsServer.on('request', function(request) {
       return;
     }
 
-    var connection = request.accept('meter-protocol', request.origin);
+    var connection = request.accept(null, request.origin);
     var reqSocket = connection.socket.remoteAddress + ':' + connection.socket.remotePort ;
+    Logger_Diag(1,'Websocket attempted from ' + reqSocket);
 
-    Logger_Diag(1,'Websocket connection accepted from ' + reqSocket);
-
-    serverWSres[reqSocket] = connection;
+    serverWSres[reqSocket] = {
+        "connection" : connection,
+        "meterName"      : ""
+    };
+    
+    connection.on('error', function(e) {
+        var reqSocket = connection.socket.remoteAddress + ':' + connection.socket.remotePort ;
+        Logger_Diag(2, "Websocket error " + e.message );
+    });
 
     connection.on('message', function(message) {
+        Logger_Diag(1,"Websocket incoming message received");
         var msgObj = JSON.parse(message.utf8Data);
         for ( aKey in msgObj ) {
-            Logger_Diag(1, aKey + " -> " + msgObj[aKey]);
+            Logger_Diag(1,aKey + " -> " + msgObj[aKey]);
         }
-        if (message.type === 'utf8') {
-            Logger_Diag(2,'Received Message: ' + message.utf8Data);
-            connection.sendUTF(message.utf8Data);
+        switch(msgObj["meter"]) {
+            case "left":
+                serverWSres[reqSocket]["meterName"] = "left";
+                Logger_Diag(1,"Websocket added meter left");
+                break;
+            case "right":
+                serverWSres[reqSocket]["meterName"] = "right";
+                Logger_Diag(1,"Websocket added meter right");
+                break;
+            default:
+                Logger_Diag(1,"No meter name added!");
         }
-        else if (message.type === 'binary') {
-            Logger_Diag(2,'Received Binary Message of ' + message.binaryData.length + ' bytes');
-            connection.sendBytes(message.binaryData);
-        }
+
+        //if (message.type === 'utf8') {
+            //Logger_Diag(2,'Received Message: ' + message.utf8Data);
+            //connection.sendUTF(message.utf8Data);
+        //}
+        //else if (message.type === 'binary') {
+            //Logger_Diag(2,'Received Binary Message of ' + message.binaryData.length + ' bytes');
+            //connection.sendBytes(message.binaryData);
+        //}
     });
     connection.on('close', function(reasonCode, description) {
         delete serverWSres[reqSocket];
@@ -106,41 +136,72 @@ wsServer.on('request', function(request) {
 
 
 // ====== TCP Server creation
+
 var net = require('net');
-var tcpServer = net.createServer();
-tcpServer.on('connection',function(socket){
+
+var tcpOnConnection = function(socket, myMeter){
+
     var localAddress = socket.address();
+    var localPort = localAddress["port"];
+    
     var reqSocket = socket.remoteAddress + ':' + socket.remotePort ;
-    socket.write('hello there\r\n');
-    Logger_Diag(1, "Incoming connection on port " + localAddress["port"]);
+    var myMeterName = myMeter.name;
+
+    socket.write('hello there ' + reqSocket + ' ; you are connected to meter ' +
+                    myMeterName + '!\r\n');
+
+    Logger_Diag(1, "tcpServer incoming connection on port " + localPort +
+                                                " for meter " + myMeterName);
+
     // Text only for this connection
 	socket.setEncoding('utf8');
     socket.on('data', function(data){
-        Logger_Diag(3, 'received on :' + tcpPortNum + " " + data);
-        //for ( key in serverHTTPres ) {
-                //serverHTTPres[key].write('data: ' + data + '\n\n');
-        //};
+        Logger_Diag(4, 'tcpServer received on :' + localPort + " " + data);
+        for ( key in serverHTTPres ) {
+                serverHTTPres[key].write('data: ' + data + '\n\n');
+        };
         for ( key in serverWSres ) {
-                serverWSres[key].sendUTF(data);
+                Logger_Diag(3,"tcpServer: meter name " + serverWSres[key]["meterName"]);
+                if (serverWSres[key]["meterName"] === myMeterName) {
+                    var outMsg = { "meter": myMeterName, "height": data};
+                    serverWSres[key]["connection"].sendUTF(JSON.stringify(outMsg));
+                    //console.log("Sent data "+ JSON.stringify(outMsg) + " to meter " + myMeterName);
+                    Logger_Diag(3,"Sent data "+ JSON.stringify(outMsg) + " to meter " + myMeterName);
+                }
         };
     });
     socket.on('close', function() {
-        Logger_Diag(1, "Deleted connection on port " + localAddress["port"] +
-            " from " + reqSocket);
+        Logger_Diag(1, "tcpServer connection on port " + localAddress["port"] +
+            " from " + reqSocket + " closed.");
     });
+};
 
-});
-for ( aMeter in meterObj ) {
-    tcpServer.listen(meterObj[aMeter]);
-    Logger_Diag(1, "TCP server started on port " + meterObj[aMeter] + 
-        " for meter " + aMeter );
+for ( aMeter in meterObj.meters ) {
+
+    var startTCP = function(arrMeter) {
+
+        var myMeter = arrMeter;
+        var meterName = myMeter.name;
+        var meterPort = myMeter.port;
+
+        myMeter.tcpServer = net.createServer();
+
+        myMeter.tcpServer.on('connection', function(socket) {
+            tcpOnConnection(socket, myMeter);
+        });
+
+        myMeter.tcpServer.on('error', function(e){
+            Logger_Diag(1,"tcpServer port " + meterPort + " error: " + e.text);
+        });
+
+        myMeter.tcpServer.on('listening', function(){
+            Logger_Diag(1, "TCP server started on port " + meterPort + 
+                    " for meter " + meterName );
+        });
+        myMeter.tcpServer.listen(meterPort);
+
+    }(meterObj.meters[aMeter]);
 }
-
-
-
-//Logger_Diag(3, util.inspect(server.listeners('request')));
-//Logger_Diag(3, util.inspect(server.listeners('connection')));
-//Logger_Diag(3, util.inspect(server.listeners('close')));
 
 //=============================== OnRequest
 var serverHTTPres = {};
@@ -155,7 +216,7 @@ function OnRequest (req, res) {
 	Logger_Diag(3, 'FROM: ' + reqSocket );
 
     req.addListener('close', function() {
-        Logger_Diag(1, 'Request connection closed from '
+        Logger_Diag(1, 'HTTP server request connection closed from '
             + reqSocket );
         delete serverHTTPres[reqSocket];
         });
@@ -180,7 +241,7 @@ function OnRequest (req, res) {
 
         // Return appropriate mime-type
         var fileName = require('url').parse(req.url).pathname;
-        console.error("Filename " + fileName + " requested.");
+        Logger_Diag(2, "Filename " + fileName + " requested.");
 
         var mimeType = FileNameToMimeType(fileName);
 		Logger_Diag(2, "Mime type: " +  strMimeType);
@@ -188,17 +249,16 @@ function OnRequest (req, res) {
         fs.stat(__dirname + fileName , function(err, stats) {
             // If not, send 404
             if (err) {
-                console.error("Sending 404.");
+                Logger_Diag(2,"Sending 404.");
                 res.writeHead(404, {'Content-Type': 'text/html'});
                 res.write('<html>File not found</html>\n');
             // If it does, send the file
             } else {
-                console.error("Sending file " + __dirname + req.url );
+                Logger_Diag(2,"Sending file " + __dirname + req.url );
                 res.writeHead(200, {'Content-Type': mimeType });
                 res.write(fs.readFileSync(__dirname + req.url));
             }
             res.end();
-            console.error("Connection closed.");
         })
 	}
 }
@@ -209,7 +269,7 @@ function OnConnection(socket){
 }
 //=============================== OnClose
 function OnClose (){
-	Logger_Diag(1, "The client closed the connection");
+	Logger_Diag(1, "The client closed the HTTP connection");
 }
 
 //=============================== FileNameToMimeType
@@ -222,7 +282,7 @@ function FileNameToMimeType(strFileName) {
 		fileExt = "";
 	}
 
-	Logger_Diag(2, "File extension: " + fileExt);
+	Logger_Diag(3, "File extension: " + fileExt);
 
 	switch( fileExt ) {
 		 case 'css':

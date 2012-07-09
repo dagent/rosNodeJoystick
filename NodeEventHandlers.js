@@ -1,31 +1,38 @@
-var es;
+var es = {};
 
 function createES(aMeter) {
-	//es = new EventSource('events');
-    url = "ws://localhost:8081";
-    
-    var outMessage = {
-        "meter": aMeter
-    };
-    var inMessage = {};
+    var myMeter = aMeter,
 
-    error("Sending request for meter " + aMeter);
+        url = 'ws://localhost:8081',
 
-    es = new WebSocket(url, "meter-protocol");
+        outMessage = {
+            "meter": myMeter
+        },
 
-	es.addEventListener('open', function (event) {
-		var div = document.getElementById("error");
-		div.innerHTML = 'opened ' + es.url +
-            ' <button onclick="destroyES()">Close</button>';
-        es.send(JSON.stringify(outMessage));
+        inMessage = {};
+
+    debug("Sending request for meter " + myMeter);
+
+    es[myMeter] = new WebSocket(url, "echo-protocol");
+
+	es[myMeter].addEventListener('open', function (event) {
+        // Horrible hack for left meter
+        if (myMeter === "left" ) {
+            var div = document.getElementById("error");
+            div.innerHTML = 'opened ' + es[myMeter].url +
+                ' <button onclick="destroyES(\'left\')">Close</button>';
+        }
+        var outMsg = JSON.stringify(outMessage);
+        es[myMeter].send(outMsg);
+        debug("JSON string sending: " + outMsg);
 	}, false);
 
-	es.addEventListener('message', function (event) {
+	es[myMeter].addEventListener('message', function (event) {
         inMessage = JSON.parse(event.data);
         if ( isNaN(inMessage.height) ) {
             return;
         }
-        switch(inMessage.meter) {
+        switch (inMessage.meter) {
             case "left":
                 mask.height.baseVal.value = inMessage.height;
                 tvalue.textContent = inMessage.height;
@@ -38,14 +45,15 @@ function createES(aMeter) {
         }
 	}, false);
 
-	es.addEventListener('error', function (event) {
+	es[myMeter].addEventListener('error', function (event) {
 		var div = document.getElementById("error");
-		div.innerHTML = 'closed by server <button onclick="createES()">Attempt Reconnect</button>';
+		div.innerHTML = 'closed by server <button onclick="createES(\"left\")">Attempt Reconnect</button>';
 	}, false);
 }
 
-function destroyES() {
-	es.close();
+function destroyES(aMeter) {
+	es[aMeter].close();
+    delete es[aMeter];
 	var div = document.getElementById("error");
 	div.innerHTML = "closed <button onclick='createES(\"left\")'>Connect</button>";
 	mask.height.baseVal.value = 280;
