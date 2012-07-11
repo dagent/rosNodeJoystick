@@ -3,7 +3,9 @@ var es = {};
 function createES(aMeter) {
     var myMeter = aMeter,
 
-        url = 'ws://localhost:8081',
+        // This is not a good way to set this:
+        //url = 'ws://localhost:8081',
+        url = 'ws://192.168.19.23:8081',
 
         outMessage = {
             "meter": myMeter

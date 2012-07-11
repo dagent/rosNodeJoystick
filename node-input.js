@@ -5,7 +5,6 @@ var fs = require('fs');
 var util = require('util');
 var optimist = require('optimist');  // npm installed module for option parsing
 var ws = require("websocket");       // npm installed module for WebSockets
-var meterObj = require('./node-meter.js')["meters"];
 
 // Defaults
 serverPortNum = 8081;
@@ -165,7 +164,6 @@ var tcpOnConnection = function(socket, myMeter){
                 if (serverWSres[key]["meterName"] === myMeterName) {
                     var outMsg = { "meter": myMeterName, "height": data};
                     serverWSres[key]["connection"].sendUTF(JSON.stringify(outMsg));
-                    //console.log("Sent data "+ JSON.stringify(outMsg) + " to meter " + myMeterName);
                     Logger_Diag(3,"Sent data "+ JSON.stringify(outMsg) + " to meter " + myMeterName);
                 }
         };
@@ -176,6 +174,7 @@ var tcpOnConnection = function(socket, myMeter){
     });
 };
 
+var meterObj = require('./node-meter.js')["meters"];
 for ( aMeter in meterObj.meters ) {
 
     var startTCP = function(arrMeter) {
