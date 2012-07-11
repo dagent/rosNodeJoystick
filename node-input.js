@@ -1,13 +1,19 @@
 #! /usr/local/bin/node
 
+/* Node.js implementation to input data on 2 listening tcp ports and output to 2 websockets.  Websockets coexist
+ * with the HTTP server.  Multiple tcp sockets supported.  The websockets listen for a data message from the
+ * client before serving the appropriate data from a tcp port.
+ */
+
 var http = require('http');
 var fs = require('fs');
 var util = require('util');
 var optimist = require('optimist');  // npm installed module for option parsing
 var ws = require("websocket");       // npm installed module for WebSockets
+var meterObj = require('./node-meter.js')["meters"];
 
 // Defaults
-serverPortNum = 8081;
+httpServerPortNum = 8081;
 tcpPortNum = 7331;
 diagLoggingLevel = 1;
 
@@ -15,13 +21,13 @@ diagLoggingLevel = 1;
 var argv = optimist
     .usage('\nUsage: $0 [--port=#] [--loglevel=#] [--tcpport=%]\n\n' +
             '\tDefaults: loglevel=' + diagLoggingLevel +
-            ' port=' + serverPortNum +
+            ' port=' + httpServerPortNum +
             ' tcpport=' + tcpPortNum)
     .argv;
 var intRegex = /^\d+$/;
 if ( intRegex.test(argv.port) ) {
     console.error("Option port set")
-    serverPortNum = argv.port;
+    httpServerPortNum = argv.port;
 }
 if ( intRegex.test(argv.tcpport) ) {
     console.error("Option tcpport set")
@@ -39,20 +45,20 @@ if (argv.help) {
 }
 
 // ====== HTTP Server creation
-var server = http.createServer();
-server.on('request', OnRequest);
-server.on('connection', OnConnection);
-server.on('close', OnClose);
-server.listen(serverPortNum);
-server.on('listening', function() {
-    Logger_Diag(1, "HTTP Server started on port " + serverPortNum);
+var httpServer = http.createServer();
+httpServer.on('request', OnRequest);
+httpServer.on('connection', OnConnection);
+httpServer.on('close', OnClose);
+httpServer.listen(httpServerPortNum);
+httpServer.on('listening', function() {
+    Logger_Diag(1, "HTTP Server started on port " + httpServerPortNum);
 });
+// === HTTP Server listening functions at the end
 
 // ====== Websocket Server creation
-
 var WebSocketServer = ws.server;
 wsServer = new WebSocketServer({
-    httpServer: server,
+    httpServer: httpServer,
     // You should not use autoAcceptConnections for production
     // applications, as it defeats all standard cross-origin protection
     // facilities built into the protocol and the browser.  You should
@@ -60,128 +66,27 @@ wsServer = new WebSocketServer({
     // to accept it.
     autoAcceptConnections: false
 });
-
 function originIsAllowed(origin) {
   // put logic here to detect whether the specified origin is allowed.
   return true;
 }
-
-var serverWSres = {} ;
 wsServer.on('request', function(request) {
-
-    request.on('requestAccepted', function(connection) {
-        var reqSocket = connection.socket.remoteAddress + ':' + connection.socket.remotePort ;
-        Logger_Diag(1,"Websocket " + reqSocket +" accepted");
-    });
-
-    request.on('error', function(e) {
-        Logger_Diag(1, "Websocket error: " + e.message);
-    });
-
-    if (!originIsAllowed(request.origin)) {
-      // Make sure we only accept requests from an allowed origin
-      request.reject();
-      Logger_Diag(1, (new Date()) + ' Connection from origin ' + request.origin + ' rejected.');
-      return;
-    }
-
-    var connection = request.accept(null, request.origin);
-    var reqSocket = connection.socket.remoteAddress + ':' + connection.socket.remotePort ;
-    Logger_Diag(1,'Websocket attempted from ' + reqSocket);
-
-    serverWSres[reqSocket] = {
-        "connection" : connection,
-        "meterName"      : ""
-    };
-    
-    connection.on('error', function(e) {
-        var reqSocket = connection.socket.remoteAddress + ':' + connection.socket.remotePort ;
-        Logger_Diag(2, "Websocket error " + e.message );
-    });
-
-    connection.on('message', function(message) {
-        Logger_Diag(1,"Websocket incoming message received");
-        var msgObj = JSON.parse(message.utf8Data);
-        for ( aKey in msgObj ) {
-            Logger_Diag(1,aKey + " -> " + msgObj[aKey]);
-        }
-        switch(msgObj["meter"]) {
-            case "left":
-                serverWSres[reqSocket]["meterName"] = "left";
-                Logger_Diag(1,"Websocket added meter left");
-                break;
-            case "right":
-                serverWSres[reqSocket]["meterName"] = "right";
-                Logger_Diag(1,"Websocket added meter right");
-                break;
-            default:
-                Logger_Diag(1,"No meter name added!");
-        }
-
-        //if (message.type === 'utf8') {
-            //Logger_Diag(2,'Received Message: ' + message.utf8Data);
-            //connection.sendUTF(message.utf8Data);
-        //}
-        //else if (message.type === 'binary') {
-            //Logger_Diag(2,'Received Binary Message of ' + message.binaryData.length + ' bytes');
-            //connection.sendBytes(message.binaryData);
-        //}
-    });
-    connection.on('close', function(reasonCode, description) {
-        delete serverWSres[reqSocket];
-        Logger_Diag(1,'Websocket peer ' + reqSocket + ' disconnected.');
-    });
+    WsServerOnRequest(request); 
 });
-
+// === Websocket linening functions at the end
 
 // ====== TCP Server creation
 
 var net = require('net');
 
-var tcpOnConnection = function(socket, myMeter){
-
-    var localAddress = socket.address();
-    var localPort = localAddress["port"];
-    
-    var reqSocket = socket.remoteAddress + ':' + socket.remotePort ;
-    var myMeterName = myMeter.name;
-
-    socket.write('hello there ' + reqSocket + ' ; you are connected to meter ' +
-                    myMeterName + '!\r\n');
-
-    Logger_Diag(1, "tcpServer incoming connection on port " + localPort +
-                                                " for meter " + myMeterName);
-
-    // Text only for this connection
-	socket.setEncoding('utf8');
-    socket.on('data', function(data){
-        Logger_Diag(4, 'tcpServer received on :' + localPort + " " + data);
-        for ( key in serverHTTPres ) {
-                serverHTTPres[key].write('data: ' + data + '\n\n');
-        };
-        for ( key in serverWSres ) {
-                Logger_Diag(3,"tcpServer: meter name " + serverWSres[key]["meterName"]);
-                if (serverWSres[key]["meterName"] === myMeterName) {
-                    var outMsg = { "meter": myMeterName, "height": data};
-                    serverWSres[key]["connection"].sendUTF(JSON.stringify(outMsg));
-                    Logger_Diag(3,"Sent data "+ JSON.stringify(outMsg) + " to meter " + myMeterName);
-                }
-        };
-    });
-    socket.on('close', function() {
-        Logger_Diag(1, "tcpServer connection on port " + localAddress["port"] +
-            " from " + reqSocket + " closed.");
-    });
-};
-
-var meterObj = require('./node-meter.js')["meters"];
-for ( aMeter in meterObj.meters ) {
+// Startup the TCP servers based on the meter object
+for ( aMeter in meterObj.meter ) {
 
     var startTCP = function(arrMeter) {
 
         var myMeter = arrMeter;
         var meterName = myMeter.name;
-        var meterPort = myMeter.port;
+        var meterPort = myMeter.portIn;
 
         myMeter.tcpServer = net.createServer();
 
@@ -199,7 +104,7 @@ for ( aMeter in meterObj.meters ) {
         });
         myMeter.tcpServer.listen(meterPort);
 
-    }(meterObj.meters[aMeter]);
+    }(meterObj.meter[aMeter]);
 }
 
 //=============================== OnRequest
@@ -207,21 +112,21 @@ var serverHTTPres = {};
 function OnRequest (req, res) {
 	var conn = req.connection;
     var fileExt = "";
-    var reqSocket = conn.remoteAddress + ':' + conn.remotePort ;
+    var socketStr = conn.remoteAddress + ':' + conn.remotePort ;
 
-	Logger_Diag(1, 'req.url: ' + req.url);
+	Logger_Diag(2, 'req.url: ' + req.url);
 	Logger_Diag(2, '\nRequest Rcvd ' + Date());
 	Logger_Diag(3, 'HEADERS: ' + JSON.stringify(req.headers));
-	Logger_Diag(3, 'FROM: ' + reqSocket );
+	Logger_Diag(3, 'FROM: ' + socketStr );
 
     req.addListener('close', function() {
         Logger_Diag(1, 'HTTP server request connection closed from '
-            + reqSocket );
-        delete serverHTTPres[reqSocket];
+            + socketStr );
+        delete serverHTTPres[socketStr];
         });
        
 	if (req.url.indexOf('/events') === 0) {
-        serverHTTPres[reqSocket] = res;
+        serverHTTPres[socketStr] = res;
 
 		res.writeHead(200, {
 			'Content-Type': 'text/event-stream',
@@ -313,3 +218,119 @@ function Logger_Diag (argDiagLevel, strMsg){
 	}
 }
 
+//================ WsServerOnRequest 
+var WsServerOnRequest = function(request) {
+
+    // The meterObj.meter[] hash for what this request instance will connect to.  See the message listener.
+    var myMeter = "" ;
+
+    request.on('requestAccepted', function(connection) {
+        var socketStr = connection.socket.remoteAddress + ':' + connection.socket.remotePort ;
+        Logger_Diag(1,"Websocket " + socketStr +" accepted");
+    });
+
+    request.on('error', function(e) {
+        Logger_Diag(1, "Websocket error: " + e.message);
+    });
+
+    if (!originIsAllowed(request.origin)) {
+      // Make sure we only accept requests from an allowed origin
+      request.reject();
+      Logger_Diag(1, (new Date()) + ' Connection from origin ' + request.origin + ' rejected.');
+      return;
+    }
+
+    try {
+        var connection = request.accept(null, request.origin);
+    } catch(e) {
+        Logger_Diag(1, "Websocket request not accepted");
+    }
+    var socketStr = connection.socket.remoteAddress + ':' + connection.socket.remotePort ;
+    Logger_Diag(2,'Websocket attempted from ' + socketStr);
+
+    connection.on('error', function(e) {
+        Logger_Diag(2, "Websocket error " + e.message );
+    });
+
+    // Don't actually do anything until we get a valid message from the client, then we add this socket to the
+    // meter object
+
+    connection.on('message', function(message) {
+        Logger_Diag(1,"Websocket incoming message received");
+        // We are expecting { "meter" : name }
+        try { 
+            var msgObj = JSON.parse(message.utf8Data);
+        } catch(e) {
+            Logger_Diag(1, "Error Parsing JSON; closing connection");
+            connection.close;
+        }
+        for ( aKey in msgObj ) {
+            Logger_Diag(3,aKey + " -> " + msgObj[aKey]);
+        }
+        if ( msgObj["meter"] === undefined ) {
+            Logger_Diag(1, "Unknown message type -- closing connection");
+            connection.close;
+            return;
+        }
+        // Set myMeter by the name the client sent us
+        try {
+            myMeter = meterObj.getMeter(msgObj["meter"]);
+        } catch(e) {
+            Logger_Diag(1, "Error matching meter name; closing connection");
+            connection.close;
+        }
+
+        // Add this connection to myMeter output sockets
+        myMeter.output[socketStr] = connection;
+
+    });
+
+    connection.on('close', function(reasonCode, description) {
+        delete myMeter.output[socketStr];
+        Logger_Diag(1,'Websocket peer ' + socketStr + ' disconnected.');
+    });
+
+};
+
+// ================== tcpOnConnection
+var tcpOnConnection = function(socket, myMeter){
+
+    var localAddress = socket.address();
+    var localPort = localAddress["port"];
+    
+    var socketStr = socket.remoteAddress + ':' + socket.remotePort ;
+    var myMeterName = myMeter.name;
+
+	socket.setEncoding('utf8');
+    socket.write('hello there ' + socketStr + ' ; you are connected to meter ' +
+                    myMeterName + '!\r\n');
+
+    Logger_Diag(1, "tcpServer incoming connection on port " + localPort +
+                                                " for meter " + myMeterName);
+    myMeter.input[socketStr] = socket;
+
+    socket.on('data', function(data){
+        Logger_Diag(4, 'tcpServer received on :' + localPort + " " + data);
+        var outMsg = { "meter": myMeterName, "height": data};
+        var outMsgJSON = JSON.stringify(outMsg);
+
+        // Loop through available outputs and spit out data from this socket instance.  This seems to be the
+        // only real way to do this.
+
+        // this is for the http:/events EventServer
+        for ( key in serverHTTPres ) {
+                serverHTTPres[key].write('data: ' + data + '\n\n');
+        };
+        //this is for the Websockets
+        for ( socketKey in myMeter.output  ) {
+                myMeter.output[socketKey].sendUTF(outMsgJSON);
+                Logger_Diag(3,"Sent data "+ outMsgJSON + " to meter " + myMeterName);
+        };
+    });
+
+    socket.on('close', function() {
+        Logger_Diag(1, "tcpServer connection on port " + localAddress["port"] +
+            " from " + socketStr + " closed.");
+            delete myMeter.input[socketStr];
+    });
+};

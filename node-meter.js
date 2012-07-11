@@ -3,59 +3,90 @@
 
 var meters = {
 
-    meters : [
+    meter : [
         {
             "name": "left",
-            port: 7331,
+            portIn: 7331,
+            input: {},
+            output: {}, 
+
         },
         {
             "name": "right",
-            port: 7332,
+            portIn: 7332,
+            input: {},
+            output: {}, 
         },
     ],
 
     port2name : function(port) {
-        for (index in meters) {
-            if (meters[index].port === port) {
-                return meters[index].name;
+        var meter = this.meter;
+        for (index in meter) {
+            if (meter[index].port === port) {
+                return meter[index].name;
             }
         }
         return undefined ;
     },
 
     name2port : function(name) {
-        for (index in meters) {
-            if (meters[index].name === name) {
-                return meters[index].port;
+        var meter = this.meter;
+        for (index in meter) {
+            if (meter[index].name === name) {
+                return meter[index].port;
             }
         }
         return undefined ;
     },
 
     setPort : function(name, port) {
-        for (index in meters) {
-            if (meters[index].name === name) {
-                meters[index].port = port;
-                return true;
+        var meter = this.meter;
+        for (index in meter) {
+            if (meter[index].name === name) {
+                meter[index].port = port;
+                return meter;
             }
         }
 
-        meters.push({
+        meter.push({
                 "name": name,
                 "port": port,
             });
-        return true;
+        return meter;
 
     },
 
-    meterObj : function(name) {
-        for (index in meters) {
-            if (meters[index].name === name) {
-                return meters[index];
+    getMeter : function(name) {
+        var meter = this.meter;
+        for (index in meter) {
+            if (meter[index].name === name) {
+                return meter[index];
             }
         }
         return undefined;
-    }
+    },
+
+    getNames : function() {
+        var meter = this.meter;
+        var nameArr = [];
+        for (index in meter) {
+            nameArr.push(meter[index].name);
+        }
+        return nameArr;
+    },
+
+
+    isNamed : function(nameStr) {
+        var meter = this.meter;
+        var nameArr = [];
+        for (index in meter) {
+            if ( meter[index] === nameStr ) {
+                return true;
+            }
+        }
+        return false;
+    },
+
 };
 
 exports.meters = meters;

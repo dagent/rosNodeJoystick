@@ -1,19 +1,18 @@
+
 var es = {};
 
 function createES(aMeter) {
-    var myMeter = aMeter,
+    var myMeter = aMeter;
 
-        // This is not a good way to set this:
-        //url = 'ws://localhost:8081',
-        url = 'ws://192.168.19.23:8081',
+    var url = 'ws://' + document.location.host ;
 
-        outMessage = {
+    var outMessage = {
             "meter": myMeter
         },
 
         inMessage = {};
 
-    debug("Sending request for meter " + myMeter);
+    debug("Sending request for meter " + myMeter + " at " + url);
 
     es[myMeter] = new WebSocket(url, "echo-protocol");
 
