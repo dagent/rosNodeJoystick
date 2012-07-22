@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE svg PUBLIC '-//W3C//DTD SVG 20001102//EN' 'http://www.w3.org/TR/2000/CR-SVG-20001102/DTD/svg-20001102.dtd'>
+<svg xmlns='http://www.w3.org/2000/svg' xmlns:xlink="http://www.w3.org/1999/xlink" width="100" height="100" id="slider" version="1.1" onload="init(evt)" onmouseup="released()" onmousemove="drag(evt)">
+    <title>Slider</title>
+    <script type="text/javascript" xlink:href="slider.js" />
+    <rect height="100" width="100" y="-0.1" x="-0.1" id="backDrop" style="fill:#ffa500" />
+    <rect height="70" width="15" x="20" y="15" id="sliderFrame" style="fill:#00ff00" />
+    <rect onmousedown="grip(evt)" height="10" width="20" x="18" y="30" id="handle" style="fill:#0000ff" />
+    <text id='monitor' x="60" y="40">50</text>
+</svg>
