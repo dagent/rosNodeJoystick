@@ -1,0 +1,30 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+
+<svg onload="startup(evt)" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" height="300" width="200" >
+
+        <script> <![CDATA[
+            var svgDoc;
+            var startup = function startup(evt){
+                svgDoc=evt.target.ownerDocument;
+            }
+    
+            var changeText = function changeText(evt) {
+                var tval = svgDoc.getElementById('tvalue');
+                var newval = evt.clientY - 10;
+                tval.textContent = newval;
+                top.receiveControlVal(newval);
+            }
+
+        ]]> </script>
+
+    <rect id="mask" class="mask" x="5" y="10" height="280" width="50"
+        fill="#000" stroke="black" stroke-width="0" opacity="0.75" 
+        onclick="changeText(evt)"/>
+
+
+    <text id="tvalue" class="tvalue" x="100" y="150" font-size="40" fill="blue">280</text>
+
+</svg>
+
