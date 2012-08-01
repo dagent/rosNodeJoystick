@@ -1,5 +1,7 @@
 #! /bin/bash
 
+export NODE_PATH="$NODE_PATH:/usr/local/lib/node_modules"
+
 progn=`basename $0`
 logf="/tmp/$progn.log"
 pidf="/tmp/$progn.pid"
