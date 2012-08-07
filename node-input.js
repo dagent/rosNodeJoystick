@@ -13,9 +13,9 @@ var ws = require("websocket");       // npm installed module for WebSockets
 var meterObj = require('./node-meter.js')["meters"];
 
 // Defaults
-httpServerPortNum = 8081;
-tcpPortNum = 7331;
-diagLoggingLevel = 1;
+var httpServerPortNum = 8081;
+var tcpPortNum = 7331; // Starting port for listeners
+var diagLoggingLevel = 1;
 
 // Handle Arguments
 var argv = optimist
@@ -73,7 +73,7 @@ function originIsAllowed(origin) {
 wsServer.on('request', function(request) {
     WsServerOnRequest(request); 
 });
-// === Websocket linening functions at the end
+// === Websocket listening functions at the end
 
 // ====== TCP Server creation
 
@@ -89,15 +89,12 @@ for ( aMeter in meterObj.meter ) {
         var meterPort = myMeter.portIn;
 
         myMeter.tcpServer = net.createServer();
-
         myMeter.tcpServer.on('connection', function(socket) {
             tcpOnConnection(socket, myMeter);
         });
-
         myMeter.tcpServer.on('error', function(e){
             Logger_Diag(1,"tcpServer port " + meterPort + " error: " + e.text);
         });
-
         myMeter.tcpServer.on('listening', function(){
             Logger_Diag(1, "TCP server started on port " + meterPort + 
                     " for meter " + meterName );
@@ -107,6 +104,41 @@ for ( aMeter in meterObj.meter ) {
     }(meterObj.meter[aMeter]);
 }
 
+// ===== ROS turtlesim external command piping
+
+var spawn = require('child_process').spawn;
+var procPath = './ros/turtle_stdin.py';
+// Some code here modified (heavily) from
+// https://github.com/Marak/say.js/blob/master/lib/say.js
+function spawnChild (path, args) { 
+    function myLog (where, text) {
+        Logger_Diag(1,"Spawned child " + path + 
+            " says: " + text + " on " + where );
+    }
+    var childD = spawn(path, args);
+    childD.addListener('exit', function (code, signal) {
+        if(code == null || signal != null) {
+            myLog("Exit status", 'couldnt talk, had an error ' +
+                '[code: '+ code + '] ' + '[signal: ' + signal + ']');
+        }
+    })
+    if (childD.pid){
+        Logger_Diag(1,"Launched " + path + " with PID " + childD.pid );
+    }
+    childD.stdin.setEncoding('ascii');
+    childD.stderr.setEncoding('ascii');
+    childD.stdout.on('data', function(data){
+        myLog('stdout', data);
+    })
+    childD.stderr.on('data', function(data){
+        myLog('stderr', data);
+    })
+    return childD;
+}
+var driveTurtle = spawnChild(procPath, "");
+
+
+// ===== HTTP functions
 //=============================== OnRequest
 var serverHTTPres = {};
 function OnRequest (req, res) {
@@ -253,11 +285,11 @@ var WsServerOnRequest = function(request) {
     });
 
     // Don't actually do anything until we get a valid message from the client, then we add this socket to the
-    // meter object
+    // meter object or handoff to a joystick
 
     connection.on('message', function(message) {
-        Logger_Diag(1,"Websocket incoming message received");
-        // We are expecting { "meter" : name }
+        Logger_Diag(3,"Websocket incoming message received");
+        // We are expecting { "meter" : name } or {joystick: }
         try { 
             var msgObj = JSON.parse(message.utf8Data);
         } catch(e) {
@@ -266,6 +298,12 @@ var WsServerOnRequest = function(request) {
         }
         for ( aKey in msgObj ) {
             Logger_Diag(3,aKey + " -> " + msgObj[aKey]);
+        }
+        // Deal with a joystick
+        if (msgObj["joystick"]){
+            Logger_Diag(3, "Got a joystick message");
+            handleJoystick(msgObj["joystick"]);
+           return; 
         }
         if ( msgObj["meter"] === undefined ) {
             Logger_Diag(1, "Unknown message type -- closing connection");
@@ -282,15 +320,27 @@ var WsServerOnRequest = function(request) {
 
         // Add this connection to myMeter output sockets
         myMeter.output[socketStr] = connection;
-
-    });
-
-    connection.on('close', function(reasonCode, description) {
-        delete myMeter.output[socketStr];
-        Logger_Diag(1,'Websocket peer ' + socketStr + ' disconnected.');
+        connection.on('close', function(reasonCode, description) {
+            delete myMeter.output[socketStr];
+            Logger_Diag(1,'Websocket peer ' + socketStr + ' disconnected.');
+        });
     });
 
 };
+
+var handleJoystick = function(arrayXY){
+    if ( driveTurtle.stdin.writable ) {
+        // expecting arrayXY [x,y]
+        try{
+            driveTurtle.stdin.write(arrayXY[0] + " " + arrayXY[1] + "\n");
+        }
+        catch(err){
+            Logger_Diag(3,'handleJoystick: driveTurtle array write error');
+        }
+    } else {
+        Logger_Diag(3,'handleJoystick: driveTurtle not writable');
+    }
+}
 
 // ================== tcpOnConnection
 var tcpOnConnection = function(socket, myMeter){

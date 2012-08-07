@@ -22,8 +22,8 @@ width is scaled to 200x200 px; call a function onload -->
         var interactive_element;
         var textXY;
         var offset; 
-        //var radian_to_degree = 180/Math.PI;   
         var stickElement;
+        var interactive = 0
         function startup(evt){
             svgDoc=evt.target.ownerDocument;
             // Use below to export an svg function to an outside
@@ -38,10 +38,11 @@ width is scaled to 200x200 px; call a function onload -->
         }
 
         // This function can be seen from html
-        function oFunction() {}
+        //function oFunction() {}
 
         //This function could call an outside function and pass foo
         // function callOutside(foo) {top.outsideFunction(foo) }
+        function parentXY(x,y) {top.wsJoystickSendXY(x,y)}
 
         // Callback function to move stick from mouse event
         function moveStick(evt) {
@@ -53,6 +54,7 @@ width is scaled to 200x200 px; call a function onload -->
                 stickElement.setAttributeNS(null, 'cx', ''+mouse_x);
                 stickElement.setAttributeNS(null, 'cy', ''+mouse_y);
                 textXY.textContent = "X: " + mouse_x + " Y: " + mouse_y ;
+                parentXY(mouse_x, mouse_y);
         }
 
     ]]>
