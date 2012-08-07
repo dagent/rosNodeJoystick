@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+
+<!-- Create a viewport 400x400 (arbitrary units with x & y at center;
+width is scaled to 200x200 px; call a function onload -->
+
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+    height="300px" width="300px"
+    viewBox="-300 -300 600 600"
+    onload='startup(evt);'>
+
+    <script type="text/javascript" xlink:href="BBox-tools.js" />
+
+    <script> <![CDATA[
+
+        // svgDoc can be used in internal javascript functions
+        var svgns = "http://www.w3.org/2000/svg";
+        var svgDoc;
+        var interactive_element;
+        var textXY;
+        var offset; 
+        //var radian_to_degree = 180/Math.PI;   
+        var stickElement;
+        function startup(evt){
+            svgDoc=evt.target.ownerDocument;
+            // Use below to export an svg function to an outside
+            // (webpage/html) name where it can be called
+            //parent.outsideCaller = oFunction;
+            //parent.svgMeters.updatefunc.push(updateMeter);
+            textXY = svgDoc.getElementById("textXY");
+            textXY.textContent = "WHY!!!!";
+            interactive_element = svgDoc.getElementById("Background1");
+            offset = getCenterOffset(interactive_element);
+            stickElement = svgDoc.getElementById("Stick1");
+        }
+
+        // This function can be seen from html
+        function oFunction() {}
+
+        //This function could call an outside function and pass foo
+        // function callOutside(foo) {top.outsideFunction(foo) }
+
+        // Callback function to move stick from mouse event
+        function moveStick(evt) {
+                if ( !interactive ) {return}
+                // Subtract mouse event coords from width/2
+                var mouse_x =  (evt.clientX - offset.x) * offset.scale;
+                var mouse_y =  (evt.clientY - offset.y) * offset.scale;
+
+                stickElement.setAttributeNS(null, 'cx', ''+mouse_x);
+                stickElement.setAttributeNS(null, 'cy', ''+mouse_y);
+                textXY.textContent = "X: " + mouse_x + " Y: " + mouse_y ;
+        }
+
+    ]]>
+    </script>
+
+
+    <!-- This is a rotary stick gauge. -->
+    <defs>
+        <!-- This is a dial. the first tick mark is at 30 degrees, and the 
+            last at 330. -->
+        <!-- This is used to locate and scale the entire assembly. -->
+        <g id="MB_DialGaugeBackground" >
+        
+            <!-- This adds the outer ring. -->
+            <circle cx="0px" cy="0px" r="275px" fill="silver" stroke="black" 
+                stroke-width="5px"/>
+            <!-- This adds the outer part of the dial background. -->
+            <circle cx="0px" cy="0px" r="250px" stroke="black" 
+                stroke-width="5px"/>
+            <!-- These add the "tick" marks to the dial. -->
+            <g stroke="white" stroke-width="10px">
+                <line x1="0" y1="-250" x2="0" y2="0"/>
+                <line x1="0" y1="-250" x2="0" y2="250" transform="rotate(90)"/>
+                <line x1="0" y1="-250" x2="0" y2="250" transform="rotate(180)"/>
+                <line x1="0" y1="-250" x2="0" y2="250" transform="rotate(270)"/>
+            </g>
+            <!-- This covers the inner part of the "tick" marks and provides 
+                most of the dial background. -->
+            <circle  cx="0px" cy="0px" r="225px" stroke="none" 
+                stroke-width="0px"/>
+        
+        </g>
+
+    </defs>
+
+	<!-- This is a dial.  -->
+	<g>
+		<g id="Background1" fill="blue">
+			<use xlink:href="#MB_DialGaugeBackground"/>
+		</g>
+
+        <text id="textXY" x="0" y="200" fill="white" text-anchor="middle"
+            style="font-size:24px; font-weight:bold;">Hey!</text>
+
+        <circle id="Stick1" fill="yellow" cx="0" cy="0" r="25"
+            stroke="black" stroke-width="2px"
+            onmousedown="interactive=1;"
+            onmouseup="interactive=0; 
+                stickElement.setAttributeNS(null, 'cx', '0');
+                stickElement.setAttributeNS(null, 'cy', '0');"
+            onmousemove="moveStick(evt)"
+            />
+
+	
+	</g>
+
+</svg>
+
