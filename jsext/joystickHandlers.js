@@ -33,15 +33,26 @@ function destroyWSjoystick() {
     delete wsJoystick;
 }
 
-var scaleJoystickXY = [1,1];
-function wsJoystickSendXY(x, y) {
+var scaleJoystickXY = [-0.01,-0.01];
+function wsJoystickSendXY(angular, linear) {
     //debug("got " + x + " " + y);
     if ( wsJoystickOn ) {
-        x = scaleJoystickXY[0] * x;
-        y = scaleJoystickXY[1] * y;
-        messageJoystick.joystick = [x, y];
+        linear = scaleJoystickXY[1] * linear;
+        angular = scaleJoystickXY[0] * angular;
+        messageJoystick.joystick = [linear, angular];
         wsJoystick.send(JSON.stringify(messageJoystick));
+    }
+    try{
+        updateMetersVal(linear, "left");
+        updateMetersVal(angular, "right");
+    }
+    catch(err) {
     }
 }
 
+function resetTurtle() {
+    var resetMsg = {"reset" : "turtlesim"};
+    wsJoystick.send(JSON.stringify(resetMsg));
+    info("Sent resetMsg: " + resetMsg);
+}
 

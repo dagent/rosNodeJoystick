@@ -305,6 +305,12 @@ var WsServerOnRequest = function(request) {
             handleJoystick(msgObj["joystick"]);
            return; 
         }
+        // Deal with a joystick
+        if (msgObj["reset"]){
+            Logger_Diag(3, "Got a reset message");
+            handleReset(msgObj["reset"]);
+           return; 
+        }
         if ( msgObj["meter"] === undefined ) {
             Logger_Diag(1, "Unknown message type -- closing connection");
             connection.close;
@@ -341,6 +347,13 @@ var handleJoystick = function(arrayXY){
         Logger_Diag(3,'handleJoystick: driveTurtle not writable');
     }
 }
+
+var handleReset = function (strWhat){
+    spawnChild("./ros/turtle_reset");
+}
+
+
+
 
 // ================== tcpOnConnection
 var tcpOnConnection = function(socket, myMeter){
