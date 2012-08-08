@@ -1,0 +1,7 @@
+#! /bin/bash
+
+# apparently this is a 12x12 field -- this puts the turtle in the middle
+rosservice call /turtle1/teleport_absolute 6 6 0
+
+rosservice call clear
+

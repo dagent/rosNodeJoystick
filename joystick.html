@@ -1,0 +1,107 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="en">
+<head>
+
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8">
+    <title>SVG Joystick demo</title>
+
+    <link rel="stylesheet" type="text/css" href="css/logger.css" media="all" />
+    <!-- <script src="jsext/prototype.js" type="text/javascript"></script> -->
+    <script src="jsext/logger.js" type="text/javascript"></script>
+    <script src="jsext/date.format.js" type="text/javascript"></script>
+
+    <script type="text/javascript" src="jsext/NodeEventHandlers.js"></script>
+    <script type="text/javascript" src="jsext/joystickHandlers.js"></script>
+    <script type="text/javascript" src="jsext/svgMeterHandlers.js"></script>
+    <script type="text/javascript" >
+        // Global variables declared elsewhere
+        //meterURL = "svg/meter.svg";
+        meterURL = "svg/meter-dial.svg";
+        //controlURL = "svg/control.svg";
+        joystickURL = "svg/joystick2.svg";
+    </script>
+
+</head>
+
+<body onload="docStart();" >
+
+    <script>
+    
+        // Load a joystick on startup
+        function controlDiv() {
+            var div = document.getElementById("control");
+            var p = document.createElement("P");
+            p.innerHTML = "Move joystick to drive.";
+            p.setAttribute("style", "font-size:12px; font-style: italic; margin-left:auto; margin-right:auto; width:70%;");
+            div.appendChild(p) ;
+        }
+        function docStart() {
+            loadSVG("joystick", joystickURL);
+            //loadSVG("control", controlURL, "controlDiv()");
+            createWSjoystick();
+            createES("left");
+            createES("right");
+            divESstate["left"] = document.getElementById("websocketerror_left");
+            divESstate["right"] = document.getElementById("websocketerror_right");
+        }
+        
+    </script>
+
+    <div id="svgGroup">
+    </div>
+
+    <div style="background-color:#FFA500;clear:both;text-align:center;">
+    <p>
+        <span style="font-size: 12px">
+            X (angular) & Y (linear) velocity multipliers</span>
+        <script>
+            function updateScaleJoystickXY() {
+                var xInput = document.getElementById("multX");
+                var yInput = document.getElementById("multY");
+                debug ( xInput.value);
+                scaleJoystickXY = [xInput.value, yInput.value];
+                debug("scaleJoystickXY = " + scaleJoystickXY);
+            }
+        </script>
+        <input type="text" name="multX" id="multX" value="-0.01" size="4"
+                                onchange="updateScaleJoystickXY()">
+        <input type="text" name="multY" id="multY" value="-0.01" size="4"
+                                onchange="updateScaleJoystickXY()">
+            <button onclick="resetTurtle()">Reset Turtle</button>
+
+    </p>
+    <p>
+            <span>Add a meter:</span>
+            <button onclick="addMeter('left')">Add Left</button>
+            <button onclick="addMeter('right')">Add Right</button>
+    </p>
+    <p>
+            <span>Internal (browser) random generator:</span>
+            <button onclick="startIt()">Start</button>
+            <button onclick="stopIt()">Stop</button>
+    </p>
+    </div>
+    <div style="background-color:#00A5FF;clear:both;text-align:center; font-size:10px;">
+        Left: <span id="websocketerror_left"></span>
+        Right: <span id="websocketerror_right"></span>
+    </div>
+
+    <div id="fvlogger" >
+        <dl>
+                <dt>fvlogger</dt>
+                <dd class="all"><a href="#fvlogger" onclick="showAll();" title="show all" id="abcdef">all</a></dd>
+                <dd class="debug"><a href="#fvlogger" onclick="showDebug();" title="show debug" id="showDebug">debug</a></dd>
+                <dd class="info"><a href="#fvlogger"  onclick="showInfo();" title="show info" id="showInfo">info</a></dd>
+                <dd class="warn"><a href="#fvlogger" onclick="showWarn();" title="show warnings" id="showWarn">warn</a></dd>
+                <dd class="error"><a href="#fvlogger" onclick="showError();" title="show errors" id="showError">error</a></dd>
+                <dd class="fatal"><a href="#fvlogger" onclick="showFatal();" title="show fatals" id="showFatal">fatal</a></dd>
+                <dd><a href="#fvlogger" onclick="eraseLog(true);" title="erase">erase</a></dd>
+        </dl>
+        <div id="fvlogger-entries" >
+        </div>  
+</div>
+
+
+</body>
+
+</html>
