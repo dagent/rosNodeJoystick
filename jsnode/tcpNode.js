@@ -1,3 +1,8 @@
+/* tcp listener for inputs to client (webpage) meters
+ *
+ * Author: David A. Gent
+ * v1.0 complete 8 August 2012
+ */
 
 var logging = require('./loggerNode.js'),
     Logger_Diag = logging.Logger_Diag;

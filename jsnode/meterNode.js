@@ -1,4 +1,6 @@
 /* meter object
+ * Author: David A. Gent
+ * v1.0 complete 8 August 2012
 */
 
 var meters = {

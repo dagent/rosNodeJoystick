@@ -1,4 +1,10 @@
-// Modified from
+// Support functions to take clientX/clientY mouse events and provide
+// offsets and scale factors to get x/y values in an elements frame of
+// reference.
+//  * Author: David A. Gent
+//  * v1.0 complete 8 August 2012
+
+// getBoundingBoxInArbitrarySpace Modified from
 // https://svn.apache.org/repos/asf/commons/sandbox/gsoc/2010/scxml-js/trunk/src/javascript/scxml/cgf/util/svg.js
 
 function getBoundingBoxInArbitrarySpace(element,mat){

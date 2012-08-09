@@ -2,6 +2,12 @@
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
 "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
 
+<!--
+    Simple click control to pass values to an outside function.
+    * Author: David A. Gent
+    * v1.0 complete 8 August 2012
+-->
+
 <svg onload="startup(evt)" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" height="300" width="200" >
 
         <script> <![CDATA[

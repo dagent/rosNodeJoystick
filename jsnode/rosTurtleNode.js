@@ -1,3 +1,9 @@
+/* ROS publishing -- Node.js call to a publisher which can stream from
+ * stdin.
+ *
+ * Author: David A. Gent
+ * v1.0 complete 8 August 2012
+ */
 
 
 var logging = require('./loggerNode.js'),

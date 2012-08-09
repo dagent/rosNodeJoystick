@@ -1,0 +1,15 @@
+#! /bin/bash
+
+# Start the neccesary processes for turtlesim graphic
+# Auth: David A. Gent
+# Date: 8 August 2012
+
+function start () {
+    cmd="$*"
+    /usr/bin/gnome-terminal --window-with-profile=tiny -t "$cmd" \
+        -e "/bin/bash -c \"$cmd\""
+}
+
+start "roscore"
+start "rosrun turtlesim turtlesim_node"
+

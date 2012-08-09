@@ -1,5 +1,9 @@
 
-debug("in NodeEventHandlers");
+/* Creates a WebSocket to Node.js and receives values to update meters
+ * Author: David A. Gent
+ * v1.0 complete 8 August 2012
+ */
+
 var es = {};
 var divESstate = {};
 
@@ -55,9 +59,9 @@ function destroyES(aMeter) {
     updateMetersVal(280) 
 }
 
-/* Randomize the maskHeight from 0-280 */
+/* Randomize the meter values from 0-100 */
 function changeHeight() {
-    rand = Math.floor((Math.random()*280)+1);
+    rand = Math.floor((Math.random()*100)+1);
     updateMetersVal(rand) 
 }
 

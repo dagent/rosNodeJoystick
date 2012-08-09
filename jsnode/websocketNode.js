@@ -1,3 +1,11 @@
+/* WebSocket service for data exchange of meter information to
+ * information to web-browser.  Call from main via
+ *      websocketNode.start(httpServer, meterObj)
+ *
+ * Author: David A. Gent
+ * v1.0 complete 8 August 2012
+ */
+
 
 var logging = require('./loggerNode.js'),
     Logger_Diag = logging.Logger_Diag;

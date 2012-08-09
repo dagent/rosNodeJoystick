@@ -1,4 +1,11 @@
 
+/* http service
+ *
+ * Author: David A. Gent
+ * v1.0 complete 8 August 2012
+ */
+
+
 // Hopefully getting much of the http out of the main node-input.js program
 
 var logging = require('./loggerNode.js'),

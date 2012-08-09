@@ -1,4 +1,10 @@
 
+/* Logging service for modules and main caller
+ *
+ * Author: David A. Gent
+ * v1.0 complete 8 August 2012
+ */
+
 exports.diagLoggingLevel = 1;
 
 //=============================== Logger_Diag

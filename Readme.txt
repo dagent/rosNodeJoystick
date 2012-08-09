@@ -1,7 +1,7 @@
 
-This is all about getting real-time data displayed on a web-page, and
-controlling a ROS node.  We deeply learn the joys of SVG, Javascript, node.js,
-Websockets, json, ROS.
+This project is aimed at getting real-time controls and data display in a
+web-browser.  It contains some advanced use examples of SVG, JavaScript,
+Node.js, Websockets, json, ROS, and Python.
 
 *****   Installation requirements:
 
@@ -52,4 +52,8 @@ util/ -- some scripts for testing, launching, data feeds
     - To do a random number at 100ms:
         ./rand 100 .1 | nc localhost 7332
 
+
+----------------
+Author: David A. Gent  (davidgent@notsourgent.com)
+Date: 8 August 2012
 

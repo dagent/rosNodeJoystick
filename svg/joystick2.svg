@@ -3,8 +3,11 @@
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
 "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
 
-<!-- Create a viewport 400x400 (arbitrary units with x & y at center;
-width is scaled to 200x200 px; call a function onload -->
+<!-- 
+    joystick which provides x/y values to an external function.
+    * Author: David A. Gent
+    * v1.0 complete 8 August 2012
+-->
 
 <svg xmlns="http://www.w3.org/2000/svg" version="1.1"
      xmlns:xlink="http://www.w3.org/1999/xlink"

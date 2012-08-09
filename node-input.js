@@ -1,21 +1,28 @@
 #! /usr/local/bin/node
 
-/* Node.js implementation to input data on 2 listening tcp ports and output to 2 websockets.  Websockets coexist
- * with the HTTP server.  Multiple tcp sockets supported.  The websockets listen for a data message from the
- * client before serving the appropriate data from a tcp port.  Websockets also used listen for commands to
- * control a ROS publisher.
+/* Node.js implementation to input data on 2 listening tcp ports and
+ * output to 2 websockets.  Websockets coexist with the HTTP server.
+ * Multiple tcp sockets supported.  The websockets listen for a data
+ * message from the client before serving the appropriate data from a
+ * tcp port.  Websockets also used listen for commands to control a ROS
+ * publisher.
+ * 
+ * Author: David A. Gent
+ * v1.0 complete 8 August 2012
  */
 
 
+// Functional hand-written modules found in jsnode/
 var httpService = require('./jsnode/httpNode.js');
-var logging = require('./jsnode/loggerNode.js'), Logger_Diag = logging.Logger_Diag;
+var logging = require('./jsnode/loggerNode.js'),
+    Logger_Diag = logging.Logger_Diag;
 var tcpService = require('./jsnode/tcpNode.js');
 var wsService = require('./jsnode/websocketNode.js');
 var rosService = require('./jsnode/rosTurtleNode.js');
 var meterObj = require('./jsnode/meterNode.js')["meters"];
-//var fs = require('fs');
-//var util = require('util');
-var optimist = require('optimist');  // npm installed module for option parsing
+
+// npm installed module for option parsing
+var optimist = require('optimist'); 
 
 // Defaults
 var httpServerPortNum = 8081;

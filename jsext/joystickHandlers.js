@@ -1,4 +1,10 @@
 
+/* Function/variables to create a WebSocket for the joystick to pass
+ * values to Node.js
+ * Author: David A. Gent
+ * v1.0 complete 8 August 2012
+ */
+
 debug("in joystickHandlers");
 var wsJoystick;
 var wsJoystickOn = false;

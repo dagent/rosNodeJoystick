@@ -1,4 +1,9 @@
 
+// Support functions for joystick2.svg
+//  * Author: David A. Gent
+//  * v1.0 complete 8 August 2012
+
+
 // svgDoc can be used in internal javascript functions
 var svgns = "http://www.w3.org/2000/svg";
 var svgDoc;

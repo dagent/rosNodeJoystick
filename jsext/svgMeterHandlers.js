@@ -1,9 +1,12 @@
-// Functions/variables to handle dynamically loading meters.svg, and
-// calls to control.svg
+/* Functions/variables to handle dynamically loading meters.svg, and
+ * calls to control.svg
+ * Author: David A. Gent
+ * v1.0 complete 8 August 2012
+ */
     
 
-var meterURL = "meter.svg"
-var controlURL = "control.svg"
+//var meterURL = "meter.svg"
+//var controlURL = "control.svg"
 
 var svgMeters = {
     "numMeters" : 0,
