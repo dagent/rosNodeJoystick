@@ -1,4 +1,6 @@
 
+Pretty pictures at http://dagent.github.com/rosNodeJoystick/
+
 This project is aimed at getting real-time controls and data display in a
 web-browser.  It contains some advanced use examples of SVG, JavaScript,
 Node.js, WebSockets, and ROS, with some Python, and Bash thrown in.
@@ -50,9 +52,11 @@ index.html -- Webpage for display and control of meters.  Uses several subdirs:
 
 joystick.html -- drive the ROS turtlesim!
 
-ros/ -- contains scripts called by node-input.js to control the ROS turtle
+ros/ -- Contains scripts to control the ROS turtle.  These are called
+        as a child process by RunNode.js which streams Velocity messages 
+        via stdin.
 
-util/ -- some scripts for testing, launching, data feeds
+util/ -- Some scripts for testing, launching, data feeds
 
     - To put in audio level to a meter from a pulse audio source:
         ./pa | ./vu -n 100 | nc localhost 7331
