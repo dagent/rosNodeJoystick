@@ -86,6 +86,6 @@ SVG -- learned and adapted code from:
   turtle or a selection mechanism.
 
 ----------------
-Author: David A. Gent  (davidgent@notsourgent.com)
+Author: David A. Gent
 Date: 10 August 2012
 
