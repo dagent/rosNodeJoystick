@@ -4,7 +4,7 @@
 
     <meta name="author" content="David A. Gent" />
     <meta name="description" content="ROS/Node.js/SVG integration prototype" />
-    <meta name="revised" content="8 August 2012" />
+    <meta name="revised" content="10 August 2012" />
     <meta name="keywords" content="ROS SVG Node.js WebSocket" />
 
     <meta http-equiv="Content-Type" content="text/html;charset=utf-8">
@@ -34,15 +34,15 @@
     
         // Load a joystick on startup
         function controlDiv() {
-            var div = document.getElementById("control");
+            var div = document.getElementById("joystick");
             var p = document.createElement("P");
-            p.innerHTML = "Move joystick to drive.";
-            p.setAttribute("style", "font-size:12px; font-style: italic; margin-left:auto; margin-right:auto; width:70%;");
+            p.innerHTML = "Drive a turtle!<br/>" +
+            "Click joystick to toggle interaction" ;
+            p.setAttribute("style", "font-size:12px; font-style: italic; margin-left:auto; margin-right:auto; width:90%; text-align:center");
             div.appendChild(p) ;
         }
         function docStart() {
-            loadSVG("joystick", joystickURL);
-            //loadSVG("control", controlURL, "controlDiv()");
+            loadSVG("joystick", joystickURL, "controlDiv()");
             createWSjoystick();
             createES("left");
             createES("right");
