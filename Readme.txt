@@ -18,7 +18,7 @@ After installing node, one should be able to install the above modules by
 An HTML5 client which can do websocket and SVG.  See compatibility stuff at
 http://caniuse.com/ -- Firefox v14 used for much of this development.
 
-ROS (http://www.ros.org/wiki/) -- and being able to run the turtlesim:
+ROS (http://www.ros.org/wiki/) -- and being able to run its turtlesim:
     roscore
     rosrun turtlesim turtlesim_node
 
@@ -26,7 +26,7 @@ ROS (http://www.ros.org/wiki/) -- and being able to run the turtlesim:
 
 1) Launch ros_core and turtle_sim 
 2) Launch RunNode.js
-3) Point web-vrowser to http://127.0.0.1:8081/joystick.html
+3) Point web-browser to http://127.0.0.1:8081/joystick.html
 
 *****   Files etc
 
@@ -87,5 +87,5 @@ SVG -- learned and adapted code from:
 
 ----------------
 Author: David A. Gent
-Date: 10 August 2012
+Date: 22 October 2013
 
